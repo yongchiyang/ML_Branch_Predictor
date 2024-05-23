@@ -10,6 +10,8 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <math.h>
+#include <iostream>
+#include <fstream>
 #include "utils.h"
 #include "bt9.h"
 #include "bt9_reader.h"
@@ -35,6 +37,8 @@ class PREDICTOR{
   UINT32  *pht;          // pattern history table
   UINT32  historyLength; // history length
   UINT32  numPhtEntries; // entries in pht 
+  UINT16  *ga;
+  INT32   gaLength;
 
  public:
 
@@ -49,7 +53,9 @@ class PREDICTOR{
   bool    GetPrediction(UINT64 PC);  
   void    UpdatePredictor(UINT64 PC, OpType opType, bool resolveDir, bool predDir, UINT64 branchTarget);
   void    TrackOtherInst(UINT64 PC, OpType opType, bool branchDir, UINT64 branchTarget);
-
+  UINT32  GetGHR(void);
+  void    WriteGHR(ofstream& fileObj);
+  void    WriteGHR_1(ofstream& fileObj);
   // Contestants can define their own functions below
 };
 
@@ -71,8 +77,10 @@ PREDICTOR::PREDICTOR(void){
   historyLength    = HIST_LEN;
   ghr              = 0;
   numPhtEntries    = (1<< HIST_LEN);
+  gaLength         = 8;
 
   pht = new UINT32[numPhtEntries];
+  ga = new UINT16[gaLength];
 
   for(UINT32 ii=0; ii< numPhtEntries; ii++){
     pht[ii]=PHT_CTR_INIT; 
@@ -175,6 +183,12 @@ void  PREDICTOR::UpdatePredictor(UINT64 PC, OpType opType, bool resolveDir, bool
   if(resolveDir == TAKEN){
     ghr++; 
   }
+
+  for(int i = 0; i < gaLength-1; i++){
+    ga[i] = ga[i+1];
+  }
+
+  ga[gaLength-1] = PC & 0b11111111;
 }
 
 /////////////////////////////////////////////////////////////
@@ -193,6 +207,41 @@ void    PREDICTOR::TrackOtherInst(UINT64 PC, OpType opType, bool branchDir, UINT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+UINT32    PREDICTOR::GetGHR(void){
+
+  return ghr;
+}
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+void    PREDICTOR::WriteGHR(ofstream& fileObj){
+
+  int len = HIST_LEN;
+  while(len--){
+    if((1 << len) & ghr) fileObj << "1";
+    else fileObj << "0";
+    fileObj << ",";
+  }
+
+  return;
+}
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+void    PREDICTOR::WriteGHR_1(ofstream& fileObj){
+
+  fileObj << (ghr & 0b11111111) << ",";
+  for(int i = 0; i < gaLength; i++){
+    fileObj << ga[i] << ",";
+  }
+
+  return;
+}
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
 /***********************************************************/
 #endif

@@ -14,6 +14,8 @@
 using namespace std;
 
 #define UINT32      unsigned int
+#define UINT16      unsigned short
+#define INT16       short
 #define INT32       int
 #define UINT64      unsigned long long
 #define COUNTER     unsigned long long

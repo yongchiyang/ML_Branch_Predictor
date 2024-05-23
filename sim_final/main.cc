@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <map>
+#include <iostream>
+#include <fstream>
 using namespace std;
 
 #include "utils.h"
@@ -109,7 +111,7 @@ void CheckHeartBeat(UINT64 numIter, UINT64 numMispred)
 
 int main(int argc, char* argv[]){
   
-  if (argc != 2) {
+  if (argc < 2) {
     printf("usage: %s <trace>\n", argv[0]);
     exit(-1);
   }
@@ -124,7 +126,19 @@ int main(int argc, char* argv[]){
   ///////////////////////////////////////////////
 
     std::string trace_path;
+    std::string trace_name;
+    std::string fileName;
+  
     trace_path = argv[1];
+    if(argc >= 3){
+      trace_name = argv[2]; 
+      if (argc == 4)
+        fileName = "../data/test_2/" + trace_name + ".csv";
+      else
+        fileName = "../data/train_2/" + trace_name + ".csv";
+    }
+    else fileName = "../data/test.csv";
+
     bt9::BT9Reader bt9_reader(trace_path);
 
     std::string key = "total_instruction_count:";
@@ -166,6 +180,16 @@ int main(int argc, char* argv[]){
       UINT64 branchTarget;
       UINT64 numIter = 0;
 
+      ofstream fileObj;
+      
+      //cout << fileName << endl;
+      fileObj.open(fileName);
+      for(int i = 0; i < 11; i++){
+        fileObj << i;
+        if(i < 10) fileObj << ",";
+        else fileObj << "\n";
+      }
+      
       for (auto it = bt9_reader.begin(); it != bt9_reader.end(); ++it) {
         CheckHeartBeat(++numIter, numMispred); //Here numIter will be equal to number of branches read
 
@@ -303,6 +327,10 @@ int main(int argc, char* argv[]){
 
             bool predDir = false;
 
+            fileObj << PC % (1 << 8) << ",";
+            brpred->WriteGHR_1(fileObj);
+            if(branchTaken) fileObj << "1\n";
+            else fileObj << "0\n";
             predDir = brpred->GetPrediction(PC);
             brpred->UpdatePredictor(PC, opType, branchTaken, predDir, branchTarget); 
 
@@ -346,7 +374,7 @@ int main(int argc, char* argv[]){
         }
       
       } //for (auto it = bt9_reader.begin(); it != bt9_reader.end(); ++it)
-
+      fileObj.close();
 
     ///////////////////////////////////////////
     //print_stats
