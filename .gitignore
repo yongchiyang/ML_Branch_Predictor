@@ -1,3 +1,7 @@
 sim_final/*.o
 sim_final/predictor
 data/*
+python/result.txt
+python/*.keras
+traces/*
+evaluationTraces/*
