@@ -62,18 +62,22 @@ model.summary()
 model.compile(optimizer='rmsprop',loss='binary_crossentropy', metrics=['acc'])
 
 #model = tf.keras.models.load_model('my_model.keras')
+
 # training
-train_list = [1,13,28,43,60,51,34]
-for i in train_list:
-    csv_name = os.path.join("../../sim_final_project/data/train_2/","SHORT_MOBILE-{id}.bt9.trace.gz.csv".format(id=i))
-    data = pd.read_csv(csv_name)
-    print("read data {i} done.".format(i=i))
+traces = [("SHORT_MOBILE",2)]
 
-    X_train = np.array(data.iloc[:,:-1]/256.0)
-    y_train = np.array(data.iloc[:,-1])
-    y_train = y_train[:,np.newaxis]
-    data = None
+for trace,iter in traces:
+    for i in range(iter+1):
 
-    model.fit(X_train,y_train,epochs=1,batch_size=32)
-    model.save('my_model.keras')
+        csv_name = os.path.join("../data/train/","{trace}-split0000{i}".format(trace,i))
+        data = pd.read_csv(csv_name,header=None)
+        print("read data {csv_name} done.".format(csv_name))
+
+        X_train = np.array(data.iloc[:,:-1])
+        y_train = np.array(data.iloc[:,-1])
+        y_train = y_train[:,np.newaxis]
+        data = None
+
+        model.fit(X_train,y_train,epochs=1,batch_size=32)
+        model.save('{trace}.keras'.format(trace))
 

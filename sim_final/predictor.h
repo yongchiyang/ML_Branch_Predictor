@@ -35,9 +35,12 @@ class PREDICTOR{
  private:
   UINT32  ghr;           // global history register
   UINT32  *pht;          // pattern history table
+  UINT32  *lpht;         // local pattern history table
+  UINT32  *bimodal;
   UINT32  historyLength; // history length
   UINT32  numPhtEntries; // entries in pht 
   UINT16  *ga;
+  UINT32  *lht;
   INT32   gaLength;
 
  public:
@@ -53,9 +56,10 @@ class PREDICTOR{
   bool    GetPrediction(UINT64 PC);  
   void    UpdatePredictor(UINT64 PC, OpType opType, bool resolveDir, bool predDir, UINT64 branchTarget);
   void    TrackOtherInst(UINT64 PC, OpType opType, bool branchDir, UINT64 branchTarget);
+  void    HistoryUpdate(UINT64 PC, OpType opType, bool resolveDir, UINT64 branchTarget);
   UINT32  GetGHR(void);
   void    WriteGHR(ofstream& fileObj);
-  void    WriteGHR_1(ofstream& fileObj);
+  void    WriteGHR_1(UINT64 PC,ofstream& fileObj);
   // Contestants can define their own functions below
 };
 
@@ -81,9 +85,15 @@ PREDICTOR::PREDICTOR(void){
 
   pht = new UINT32[numPhtEntries];
   ga = new UINT16[gaLength];
+  lht = new UINT32[numPhtEntries];
+  lpht = new UINT32[numPhtEntries];
+  bimodal = new UINT32[numPhtEntries];
 
   for(UINT32 ii=0; ii< numPhtEntries; ii++){
     pht[ii]=PHT_CTR_INIT; 
+    lpht[ii]=PHT_CTR_INIT;
+    bimodal[ii]=PHT_CTR_INIT;
+    lht[ii]=0;
   }
   
 }
@@ -122,17 +132,30 @@ PREDICTOR::PREDICTOR(void){
 //NOTE contestants are not allowed to use the btb* information from ver2 of the simulation infrastructure. Interface to this function CAN NOT be changed.
 bool   PREDICTOR::GetPrediction(UINT64 PC){
 
-  UINT32 phtIndex   = (PC^ghr) % (numPhtEntries);
+  UINT32 phtIndex   = ((PC>>2)^ghr) % (numPhtEntries);
+  UINT32 lphtIndex  = lht[phtIndex] % (numPhtEntries);
   UINT32 phtCounter = pht[phtIndex];
+  UINT32 lphtCounter = lpht[lphtIndex];
+  UINT32 biCounter = bimodal[phtIndex];
 
 //  printf(" ghr: %x index: %x counter: %d prediction: %d\n", ghr, phtIndex, phtCounter, phtCounter > PHT_CTR_MAX/2);
-
-  if(phtCounter > (PHT_CTR_MAX/2)){ 
-    return TAKEN; 
+  if(bimodal[phtIndex] & 0b10){
+    if(lphtCounter  & 0b10){ 
+      return TAKEN; 
+    }
+    else{
+      return NOT_TAKEN; 
+    }
   }
   else{
-    return NOT_TAKEN; 
+    if(phtCounter  & 0b10){ 
+      return TAKEN; 
+    }
+    else{
+      return NOT_TAKEN; 
+    }
   }
+  
 }
 
 
@@ -168,27 +191,32 @@ bool   PREDICTOR::GetPrediction(UINT64 PC){
 //NOTE contestants are not allowed to use the btb* information from ver2 of the simulation infrastructure. Interface to this function CAN NOT be changed.
 void  PREDICTOR::UpdatePredictor(UINT64 PC, OpType opType, bool resolveDir, bool predDir, UINT64 branchTarget){
 
-  UINT32 phtIndex   = (PC^ghr) % (numPhtEntries);
+  UINT32 phtIndex   = ((PC>>2)^ghr) % (numPhtEntries);
+  UINT32 lphtIndex  = lht[phtIndex] % (numPhtEntries);
   UINT32 phtCounter = pht[phtIndex];
+  UINT32 lphtCounter = lpht[lphtIndex];
+  UINT32 biCounter = bimodal[phtIndex];
+
+  bool lphtPred = (lphtCounter > (PHT_CTR_MAX/2));
+  bool phtPred = (phtCounter > (PHT_CTR_MAX/2));
+  if(lphtPred != phtPred){
+    if(resolveDir == lphtPred){
+      bimodal[phtIndex] = SatIncrement(biCounter, PHT_CTR_MAX);
+    }
+    else{
+      bimodal[phtIndex] = SatDecrement(biCounter);
+    }
+  }
 
   if(resolveDir == TAKEN){
     pht[phtIndex] = SatIncrement(phtCounter, PHT_CTR_MAX);
+    lpht[lphtIndex] = SatIncrement(lphtCounter, PHT_CTR_MAX);
   }else{
     pht[phtIndex] = SatDecrement(phtCounter);
+    lpht[lphtIndex] = SatDecrement(lphtCounter);
   }
 
-  // update the GHR
-  ghr = (ghr << 1);
-
-  if(resolveDir == TAKEN){
-    ghr++; 
-  }
-
-  for(int i = 0; i < gaLength-1; i++){
-    ga[i] = ga[i+1];
-  }
-
-  ga[gaLength-1] = PC & 0b11111111;
+  HistoryUpdate(PC,opType,resolveDir,branchTarget);
 }
 
 /////////////////////////////////////////////////////////////
@@ -200,7 +228,7 @@ void    PREDICTOR::TrackOtherInst(UINT64 PC, OpType opType, bool branchDir, UINT
   // conditional branches, just in case someone decides to design
   // a predictor that uses information from such instructions.
   // We expect most contestants to leave this function untouched.
-
+  HistoryUpdate(PC,opType,branchDir,branchTarget);
   return;
 }
 
@@ -230,13 +258,64 @@ void    PREDICTOR::WriteGHR(ofstream& fileObj){
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-void    PREDICTOR::WriteGHR_1(ofstream& fileObj){
+void    PREDICTOR::WriteGHR_1(UINT64 PC,ofstream& fileObj){
 
-  fileObj << (ghr & 0b11111111) << ",";
+  UINT32 phtIndex   = ((PC>>2)^ghr) % (numPhtEntries);
+  UINT32 lphtIndex  = lht[phtIndex] % (numPhtEntries);
+  UINT32 phtCounter = pht[phtIndex];
+  UINT32 lphtCounter = lpht[lphtIndex];
+
+  //fileObj << (ghr & 0b11111111) << ",";
+  for(int i = 0; i < HIST_LEN; i++){
+    if(ghr & (1 << i)) fileObj << "1,";
+    else fileObj << "0,";
+  }
+
   for(int i = 0; i < gaLength; i++){
     fileObj << ga[i] << ",";
   }
 
+  fileObj << phtCounter << "," << lphtCounter << "," << bimodal[phtIndex] << ",";
+  
+  if(phtCounter & 0b10) 
+    fileObj << "1,";
+  else 
+    fileObj << "0,";
+
+  if(lphtCounter & 0b10) 
+    fileObj << "1,";
+  else 
+    fileObj << "0,";
+
+  for(int i = 0; i < HIST_LEN; i++){
+    if(lht[phtIndex] & (1 << i)) fileObj << "1,";
+    else fileObj << "0,";
+  }
+
+  return;
+}
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+void    PREDICTOR::HistoryUpdate(UINT64 PC, OpType opType, bool resolveDir, UINT64 branchTarget){
+
+  UINT32 phtIndex   = ((PC>>2)^ghr) % (numPhtEntries);
+  // update the GHR
+  ghr = (ghr << 1);
+  // update local history table
+  lht[phtIndex] = (lht[phtIndex] << 1);
+
+  if(resolveDir == TAKEN){
+    ghr++; 
+    lht[phtIndex] ++;
+  }
+
+  for(int i = 0; i < gaLength-1; i++){
+    ga[i] = ga[i+1];
+  }
+
+  ga[gaLength-1] = (PC>>2) & 0b11111111;
   return;
 }
 

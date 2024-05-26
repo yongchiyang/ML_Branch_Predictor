@@ -20,7 +20,7 @@ using namespace std;
 
 
 #define COUNTER     unsigned long long
-
+#define WRITE_CSV
 
 
 void CheckHeartBeat(UINT64 numIter, UINT64 numMispred)
@@ -126,18 +126,20 @@ int main(int argc, char* argv[]){
   ///////////////////////////////////////////////
 
     std::string trace_path;
+    trace_path = argv[1];
+
+#ifdef WRITE_CSV
     std::string trace_name;
     std::string fileName;
-  
-    trace_path = argv[1];
     if(argc >= 3){
       trace_name = argv[2]; 
       if (argc == 4)
-        fileName = "../data/test_2/" + trace_name + ".csv";
+        fileName = "../data/test/" + trace_name + ".csv";
       else
-        fileName = "../data/train_2/" + trace_name + ".csv";
+        fileName = "../data/train/" + trace_name + ".csv";
     }
     else fileName = "../data/test.csv";
+#endif
 
     bt9::BT9Reader bt9_reader(trace_path);
 
@@ -180,16 +182,11 @@ int main(int argc, char* argv[]){
       UINT64 branchTarget;
       UINT64 numIter = 0;
 
+#ifdef WRITE_CSV
       ofstream fileObj;
-      
-      //cout << fileName << endl;
       fileObj.open(fileName);
-      for(int i = 0; i < 11; i++){
-        fileObj << i;
-        if(i < 10) fileObj << ",";
-        else fileObj << "\n";
-      }
-      
+#endif
+   
       for (auto it = bt9_reader.begin(); it != bt9_reader.end(); ++it) {
         CheckHeartBeat(++numIter, numMispred); //Here numIter will be equal to number of branches read
 
@@ -326,11 +323,12 @@ int main(int argc, char* argv[]){
 //ver2            //puts("");
 
             bool predDir = false;
-
-            fileObj << PC % (1 << 8) << ",";
-            brpred->WriteGHR_1(fileObj);
+#ifdef WRITE_CSV
+            fileObj << (PC>>2) % (1 << 8) << ",";
+            brpred->WriteGHR_1(PC,fileObj);
             if(branchTaken) fileObj << "1\n";
             else fileObj << "0\n";
+#endif
             predDir = brpred->GetPrediction(PC);
             brpred->UpdatePredictor(PC, opType, branchTaken, predDir, branchTarget); 
 
@@ -374,7 +372,9 @@ int main(int argc, char* argv[]){
         }
       
       } //for (auto it = bt9_reader.begin(); it != bt9_reader.end(); ++it)
+#ifdef WRITE_CSV
       fileObj.close();
+#endif
 
     ///////////////////////////////////////////
     //print_stats
