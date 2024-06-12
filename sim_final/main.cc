@@ -110,7 +110,6 @@ void CheckHeartBeat(UINT64 numIter, UINT64 numMispred)
 // usage: predictor <trace>
 
 int main(int argc, char* argv[]){
-  
   if (argc < 2) {
     printf("usage: %s <trace>\n", argv[0]);
     exit(-1);
@@ -130,13 +129,15 @@ int main(int argc, char* argv[]){
 
 #ifdef WRITE_CSV
     std::string trace_name;
+    std::string trace_type;
     std::string fileName;
-    if(argc >= 3){
+    if(argc >= 4){
       trace_name = argv[2]; 
-      if (argc == 4)
-        fileName = "../data/test/" + trace_name + ".csv";
+      trace_type = argv[3];
+      if (argc == 5)
+        fileName = "../data/" + trace_type + ".test/" + trace_name + ".csv";
       else
-        fileName = "../data/train/" + trace_name + ".csv";
+        fileName = "../data/" + trace_type + ".train/" + trace_name + ".csv";
     }
     else fileName = "../data/test.csv";
 #endif
@@ -324,8 +325,8 @@ int main(int argc, char* argv[]){
 
             bool predDir = false;
 #ifdef WRITE_CSV
-            fileObj << (PC>>2) % (1 << 8) << ",";
-            brpred->WriteGHR_1(PC,fileObj);
+            //fileObj << (PC>>2) % (1 << 8) << ",";
+            brpred->Write_Data(PC,fileObj);
             if(branchTaken) fileObj << "1\n";
             else fileObj << "0\n";
 #endif

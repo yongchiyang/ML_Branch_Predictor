@@ -57,9 +57,7 @@ class PREDICTOR{
   void    UpdatePredictor(UINT64 PC, OpType opType, bool resolveDir, bool predDir, UINT64 branchTarget);
   void    TrackOtherInst(UINT64 PC, OpType opType, bool branchDir, UINT64 branchTarget);
   void    HistoryUpdate(UINT64 PC, OpType opType, bool resolveDir, UINT64 branchTarget);
-  UINT32  GetGHR(void);
-  void    WriteGHR(ofstream& fileObj);
-  void    WriteGHR_1(UINT64 PC,ofstream& fileObj);
+  void    Write_Data(UINT64 PC,ofstream& fileObj);
   // Contestants can define their own functions below
 };
 
@@ -155,7 +153,6 @@ bool   PREDICTOR::GetPrediction(UINT64 PC){
       return NOT_TAKEN; 
     }
   }
-  
 }
 
 
@@ -235,69 +232,6 @@ void    PREDICTOR::TrackOtherInst(UINT64 PC, OpType opType, bool branchDir, UINT
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-UINT32    PREDICTOR::GetGHR(void){
-
-  return ghr;
-}
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-void    PREDICTOR::WriteGHR(ofstream& fileObj){
-
-  int len = HIST_LEN;
-  while(len--){
-    if((1 << len) & ghr) fileObj << "1";
-    else fileObj << "0";
-    fileObj << ",";
-  }
-
-  return;
-}
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-void    PREDICTOR::WriteGHR_1(UINT64 PC,ofstream& fileObj){
-
-  UINT32 phtIndex   = ((PC>>2)^ghr) % (numPhtEntries);
-  UINT32 lphtIndex  = lht[phtIndex] % (numPhtEntries);
-  UINT32 phtCounter = pht[phtIndex];
-  UINT32 lphtCounter = lpht[lphtIndex];
-
-  //fileObj << (ghr & 0b11111111) << ",";
-  for(int i = 0; i < HIST_LEN; i++){
-    if(ghr & (1 << i)) fileObj << "1,";
-    else fileObj << "0,";
-  }
-
-  for(int i = 0; i < gaLength; i++){
-    fileObj << ga[i] << ",";
-  }
-
-  fileObj << phtCounter << "," << lphtCounter << "," << bimodal[phtIndex] << ",";
-  
-  if(phtCounter & 0b10) 
-    fileObj << "1,";
-  else 
-    fileObj << "0,";
-
-  if(lphtCounter & 0b10) 
-    fileObj << "1,";
-  else 
-    fileObj << "0,";
-
-  for(int i = 0; i < HIST_LEN; i++){
-    if(lht[phtIndex] & (1 << i)) fileObj << "1,";
-    else fileObj << "0,";
-  }
-
-  return;
-}
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
 void    PREDICTOR::HistoryUpdate(UINT64 PC, OpType opType, bool resolveDir, UINT64 branchTarget){
 
   UINT32 phtIndex   = ((PC>>2)^ghr) % (numPhtEntries);
@@ -311,11 +245,54 @@ void    PREDICTOR::HistoryUpdate(UINT64 PC, OpType opType, bool resolveDir, UINT
     lht[phtIndex] ++;
   }
 
-  for(int i = 0; i < gaLength-1; i++){
-    ga[i] = ga[i+1];
+
+  //for(int i = 0; i < gaLength-1; i++){
+  //  ga[i] = ga[i+1];
+  //}
+
+  //ga[gaLength-1] = (PC>>2) & 0b11111111;
+  return;
+}
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+void    PREDICTOR::Write_Data(UINT64 PC,ofstream& fileObj){
+
+  UINT32 phtIndex   = ((PC>>2)^ghr) % (numPhtEntries);
+  UINT32 lphtIndex  = lht[phtIndex] % (numPhtEntries);
+  UINT32 phtCounter = pht[phtIndex];
+  UINT32 lphtCounter = lpht[lphtIndex];
+
+  //fileObj << (ghr & 0b11111111) << ",";
+  // global history
+  for(int i = HIST_LEN-1; i >= 0; --i){
+    if(ghr & (1 << i)) fileObj << "1,";
+    else fileObj << "0,";
+  }
+  
+  // local history
+  for(int i = HIST_LEN-1; i >= 0; --i){
+    if(lht[phtIndex] & (1 << i)) fileObj << "1,";
+    else fileObj << "0,";
   }
 
-  ga[gaLength-1] = (PC>>2) & 0b11111111;
+  // bpu prediction output
+  for(int i = 1; i >= 0; i--){
+    if(phtCounter & (1 << i)) fileObj << "1,";
+    else fileObj << "0,";
+  }
+
+  for(int i = 1; i >= 0; i--){
+    if(lphtCounter & (1 << i)) fileObj << "1,";
+    else fileObj << "0,";
+  }
+
+  for(int i = 1; i >= 0; i--){
+    if(bimodal[phtIndex] & (1 << i)) fileObj << "1,";
+    else fileObj << "0,";
+  }
+
   return;
 }
 
