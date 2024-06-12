@@ -32,9 +32,9 @@ OBJ_PY      := $(SRC_PY:$(SRCDIR_PY)/%.cc=$(OBJDIR_PY)/%.o)
 OBJ_LG      := $(SRC_LG:$(SRCDIR_LG)/%.cc=$(OBJDIR_LG)/%.o)
 OBJ         := $(OBJ_PY) $(OBJ_LG)
 
-LDLIBS      += -lboost_iostreams
+LDLIBS      += -l$(PYTHON) -lboost_iostreams
 LDFLAGS_LG  += -L$(BOOST)/lib -Wl,-rpath $(BOOST)/lib
-LDFLAGS_PY  := $(LDFLAGS_LG) -l$(PYTHON)
+LDFLAGS_PY  := $(LDFLAGS_LG)
 
 CPPFLAGS    := -O3 -Wall -std=c++11 -Wextra -Winline -Winit-self -Wno-sequence-point \
                -Wno-unused-function -Wno-inline -fPIC -W -Wcast-qual -Wpointer-arith -Woverloaded-virtual \
