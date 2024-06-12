@@ -1,14 +1,14 @@
-sim_final/*.o
-sim_final/predictor
-sim_final/eval_info
-sim_final/get_eval_info.sh
+simulation/sim_final/*.o
+simulation/sim_final/predictor
+simulation/sim_final/eval_info
+simulation/sim_final/get_eval_info.sh
 
-data/data_info/*
-data/generated/*
-machine_learning_method/mlp/models/analyze_data/*.png
+simulation/data/data_info/*
+simulation/data/generated/*
+simulation/machine_learning_method/mlp/models/analyze_data/*.png
 
-ALL/*
-LONG_SERVER/*
-LONG_MOBILE/*
-SHORT_SERVER/*
-SHORT_MOBILE/*
+simulation/ALL/*
+simulation/LONG_SERVER/*
+simulation/LONG_MOBILE/*
+simulation/SHORT_SERVER/*
+simulation/SHORT_MOBILE/*
