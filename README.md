@@ -44,23 +44,25 @@ Since running the CBP-16-Simulation repo takes a lot of time, we decided to coll
     ```
 ### training and evaluation
 * `pip install -r requirements.txt`
-#### Decision Tree
-* To train decision tree branch predictor:
-    * `cd machine_learning_method/decision-tree/`
-    * run `python train.py`
-    * It will generated four models according to each trace type, and a model that is trained on mixed data.
-* To evaluate the decision tree result, run `python test.py`
-* The evaluation metric of our trained decision models are stored in `machine_learning_method/decision-tree/models/analyze_data`
-#### Random Forest
-* To train random forest branch predictor:
-    * `cd machine_learning_method/random-forest`
-    * run `python train.py`
-* To evalutate:
-    * run `python test.py`
-#### Multi-layer Perceptron
-* To train mlp branch predictor:
-    * `cd machine_learning_method/mlp`
-    * run `python train.py` 
-* To evaluate mlp branch predictor, run `python test.py`
-* The evaluation metric of our trained mlp models are stored in `machine_learning_method/mlp/models/analyze_data`
+    #### Decision Tree
+    * To train decision tree branch predictor:
+        * `cd machine_learning_method/decision-tree/`
+        * run `python train.py`
+        * It will generated four models according to each trace type, and a model that is trained on mixed data.
+    * To evaluate the decision tree result, run `python test.py`
+    * The evaluation metric of our trained decision models are stored in `machine_learning_method/decision-tree/models/analyze_data`
+    #### Random Forest
+    * To train random forest branch predictor:
+        * `cd machine_learning_method/random-forest`
+        * Download models.tar.gz from [google-drive](https://drive.google.com/drive/folders/19cVRMmxUc_1lO16mOBd7fITPS_rOU2rr?usp=sharing)
+        * `tar zxvf models.tar.gz`
+        * Run `python train.py`
+    * To evalutate:
+        * run `python test.py`
+    #### Multi-layer Perceptron
+    * To train mlp branch predictor:
+        * `cd machine_learning_method/mlp`
+        * run `python train.py` 
+    * To evaluate mlp branch predictor, run `python test.py`
+    * The evaluation metric of our trained mlp models are stored in `machine_learning_method/mlp/models/analyze_data`
 * If need to train and evaluate on mixed dataset, use the combined data in `data/ALL.train` directory to train the model and edit the model name in `test.py
