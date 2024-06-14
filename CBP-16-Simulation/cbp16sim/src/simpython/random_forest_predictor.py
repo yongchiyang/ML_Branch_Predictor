@@ -1,5 +1,5 @@
 from predictor import BASEPREDICTOR, UINT64, OpType
-import joblib
+import xgboost as xgb
 import numpy as np
 
 DEBUG = False
@@ -19,8 +19,9 @@ class PREDICTOR(BASEPREDICTOR):
         self.local_history_pattern = [0] * (2 ** 17)
         self.selector_table = [2] * (2 ** 17)
         # change here to evaluate different trained models
-        self.model_name = "src/simpython/decision_tree_models/rf_model_mixture.pkl"
-        self.model = joblib.load(self.model_name)
+        self.model_name = "src/simpython/random_forest_models/xgb_model_ALL.json"
+        self.model = xgb.Booster()
+        self.model.load_model(self.model_name)
 
     def sat_increment(self,x):
         if(x < self.ctr_max): 
@@ -66,9 +67,10 @@ class PREDICTOR(BASEPREDICTOR):
 
         # model predict
         input = np.array(input)
-        input = input[np.newaxis,:]        
-
-        return self.model.predict(input)
+        input = input[np.newaxis,:]   
+        input = xgb.DMatrix(input)     
+        ml_pred = (self.model.predict(input) > 0.5).astype("int32")
+        return ml_pred
 
 
         # original hybrid predictor prediction output

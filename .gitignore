@@ -12,3 +12,5 @@ simulation/LONG_SERVER/*
 simulation/LONG_MOBILE/*
 simulation/SHORT_SERVER/*
 simulation/SHORT_MOBILE/*
+
+CBP-16-Simulation/cbp16sim/src/simpython/random_forest_models/*

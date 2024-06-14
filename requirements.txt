@@ -1,11 +1,8 @@
-# Pandas and tables for storing as hdf
-pandas
-tables
-tqdm
-
-numpy
-matplotlib
-seaborn
-# You can replace this backend with what you want but assuming you won't read this, this
-# will take care of not being able to see things and having to figure it out yourself...
-PyQt5
+numpy==1.26.4
+matplotlib==3.8.4
+scikit-learn==1.4.2
+snapml==1.15.6
+loguru==0.7.2
+keras==3.3.3
+tensorflow==2.16.1
+xgboost==2.0.3
