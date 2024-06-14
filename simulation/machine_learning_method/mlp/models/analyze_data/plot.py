@@ -3,8 +3,8 @@ import numpy as np
 
 #types = ["SHORT_MOBILE","SHORT_SERVER","LONG_SERVER","LONG_MOBILE","ALL"]
 #types = ["SHORT_MOBILE","SHORT_SERVER","LONG_SERVER"]
-types = ["SHORT_MOBILE","SHORT_SERVER","LONG_SERVER","LONG_MOBILE"]
-
+#types = ["SHORT_MOBILE","SHORT_SERVER","LONG_SERVER","LONG_MOBILE"]
+types = ["ALL"]
 
 for type in types:
     total_icnt,total_branch = [],[]
@@ -41,7 +41,7 @@ for type in types:
         HYB_acc.append(1-(hyb_misp/total))
         MLP_acc.append(1-(test_misp/total))
         TAGE_acc.append(1-(tage_misp/total))
-        
+    """    
     baseline = np.arange(1,len(total_icnt)+1)
     plt.plot(baseline,np.array(HYB_mispred),baseline,np.array(MLP_mispred),baseline,np.array(TAGE_mispred))
     plt.title('mispredict')
@@ -60,8 +60,27 @@ for type in types:
     plt.title('acc')
     plt.legend(('hybrid','mlp','tage'))
     plt.savefig("{}-accuracy.png".format(type))
+    """
+    baseline = np.arange(1,len(total_icnt)+1)
+    plt.plot(baseline,np.array(HYB_mispred),baseline,np.array(MLP_mispred))
+    plt.title('mispredict')
+    plt.legend(('hybrid','mlp'))
+    plt.savefig("{}-mispred.png".format(type))
 
-    
+    plt.clf()
+
+    plt.plot(baseline,np.array(HYB_mpki),baseline,np.array(MLP_mpki))
+    plt.title('mpki')
+    plt.legend(('hybrid','mlp'))
+    plt.savefig("{}-mpki.png".format(type))
+
+    plt.clf()
+    plt.plot(baseline,np.array(HYB_acc),baseline,np.array(MLP_acc))
+    plt.title('acc')
+    plt.legend(('hybrid','mlp'))
+    plt.savefig("{}-accuracy.png".format(type))
+
+    """
     with open("{}".format(type),"a") as f:
         f.write("traces,total_instruction_cnt,total_branch_cnt,TAGE_mispred,HYB_mispred,ML_mispred,TAGE_mpki,HYB_mpki,ML_mpki,TAGE_acc,HYB_acc,ML_acc\n")
         for i in range(len(total_branch)):
@@ -73,7 +92,7 @@ for type in types:
         f.write("TAGE acc = {}\n".format(sum(TAGE_acc)/len(TAGE_acc)))
         f.write("HYB acc = {}\n".format(sum(HYB_acc)/len(HYB_acc)))
         f.write("MLP acc = {}\n".format(sum(MLP_acc)/len(MLP_acc)))
-    
+    """
     #print("mispred, mpki, acc")
     #for i in range(1,len(total_icnt)+1):    
     #    print("trace {}, bpu :{}, {}, {:.5f}\nmlp :{}, {:.5f}, {:.5f}".format(i,mispred[i-1],mpki[i-1],acc[i-1],MLP_mispred[i-1],MLP_mpki[i-1],MLP_acc[i-1]))

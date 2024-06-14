@@ -17,7 +17,7 @@
 Since running the CBP-16-Simulation repo takes a lot of time, we decided to collect the training and testing data ourselves for analysis.
 ### training and testing data generation
 * Run `sim_final/dataset_gen.sh` to generated specific trace types.
-* We also save the generated files on <google cloud>.
+* We also save the generated files on [google cloud](https://drive.google.com/drive/folders/19cVRMmxUc_1lO16mOBd7fITPS_rOU2rr?usp=sharing).
 * After data generated, you may need to rename the generated files to ensure the program runs succesfully.
 * During generation, OOM-killed problem may occur when using the `shuf` command due to the size of the data, we find an alternative program that can help us to shuffle the dataset : [terashuf](https://github.com/alexandres/terashuf)
 * Ensure the directory structure is as follows:
