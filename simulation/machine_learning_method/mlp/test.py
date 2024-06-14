@@ -17,7 +17,7 @@ traces = [("LONG_MOBILE",32),("SHORT_SERVER",293),("LONG_SERVER",8),("SHORT_MOBI
 for trace,iter in traces:
     model = tf.keras.models.load_model('models/{}.keras'.format(trace))
     for i in range(1,iter+1):
-        csv_name = os.path.join("../../data/data_info/{}.test/".format(trace),"{}-{}.bt9.trace".format(trace,i))
+        csv_name = os.path.join("../../data/generated/{}.test/".format(trace),"{}-{}.bt9.trace".format(trace,i))
         data = pd.read_csv(csv_name,header=None)
         print("read testing data {} done.".format(csv_name))
 

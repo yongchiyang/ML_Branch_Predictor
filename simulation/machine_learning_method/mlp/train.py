@@ -34,7 +34,7 @@ def create_model():
     return model
 
 # training traces
-traces = [("SHORT_SERVER",1018),("SHORT_MOBILE",214),("LONG_SERVER",95),("LONG_MOBILE",126)]
+traces = [("SHORT_SERVER",1018),("SHORT_MOBILE",214),("LONG_SERVER",95),("LONG_MOBILE",126),("ALL",364)]
 
 for trace,iter in traces:
     model = create_model()
