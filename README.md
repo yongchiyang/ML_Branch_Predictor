@@ -65,4 +65,4 @@ Since running the CBP-16-Simulation repo takes a lot of time, we decided to coll
         * run `python train.py` 
     * To evaluate mlp branch predictor, run `python test.py`
     * The evaluation metric of our trained mlp models are stored in `machine_learning_method/mlp/models/analyze_data`
-* If need to train and evaluate on mixed dataset, use the combined data in `data/ALL.train` directory to train the model and edit the model name in `test.py
+* If need to train and evaluate on mixed dataset, use the combined data in `data/ALL.train` directory to train the model and edit the model name in `test.py`
